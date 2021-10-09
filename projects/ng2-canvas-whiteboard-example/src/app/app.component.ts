@@ -4,7 +4,12 @@ import {
   CanvasWhiteboardService,
   CanvasWhiteboardUpdate,
   CanvasWhiteboardOptions,
-  CanvasWhiteboardShapeService, CircleShape, SmileyShape, StarShape, LineShape, RectangleShape
+  CanvasWhiteboardShapeService, 
+  CircleShape,
+  SmileyShape,
+  StarShape, 
+  LineShape, 
+  RectangleShape
 } from 'ng2-canvas-whiteboard';
 
 @Component({
@@ -16,9 +21,8 @@ export class AppComponent {
   @ViewChild(CanvasWhiteboardComponent) canvasWhiteboardComponent: CanvasWhiteboardComponent;
   canvasOptions: CanvasWhiteboardOptions = {};
 
-  constructor(private canvasWhiteboardService: CanvasWhiteboardService,
-              private canvasWhiteboardShapeService: CanvasWhiteboardShapeService) {
-    this.canvasWhiteboardShapeService.unregisterShapes([CircleShape, SmileyShape, StarShape, LineShape, RectangleShape]);
+  constructor(private canvasWhiteboardService: CanvasWhiteboardService, private canvasWhiteboardShapeService: CanvasWhiteboardShapeService) {
+    // this.canvasWhiteboardShapeService.unregisterShapes([CircleShape, SmileyShape, StarShape, LineShape, RectangleShape]);
   }
 
   saveToStorage(): void {
