@@ -1,0 +1,22 @@
+{
+  "name": "ng2canvaswhiteboard",
+  "version": "1.0.0",
+  "description": "Canvas whiteboard",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "keywords": [
+    "canvas",
+    "whiteboard",
+    "angular"
+  ],
+  "author": "Miguel Rodriguez",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "ngx-socket-io": "^3.4.0",
+    "socket-io": "^1.0.0",
+    "socket.io": "^4.3.1"
+  }
+}
