@@ -9,6 +9,7 @@ import { SmileyShape } from './smiley-shape';
 import { StarShape } from './star-shape';
 import { LineShape } from './line-shape';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { TextboxShape } from './textbox-shape';
 
 export type INewCanvasWhiteboardShape<T extends CanvasWhiteboardShape> =
   new(positionPoint?: CanvasWhiteboardPoint, options?: CanvasWhiteboardShapeOptions, ...args: any[]) => T;
@@ -25,8 +26,10 @@ export class CanvasWhiteboardShapeService {
       RectangleShape,
       CircleShape,
       StarShape,
-      SmileyShape
+      SmileyShape,
+      TextboxShape
     ]);
+    console.log(this.registeredShapesSubject)
     this.registeredShapes$ = this.registeredShapesSubject.asObservable();
   }
 

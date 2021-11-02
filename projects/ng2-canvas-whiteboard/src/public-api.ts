@@ -15,6 +15,7 @@ export { LineShape } from './lib/shapes/line-shape';
 export { RectangleShape } from './lib/shapes/rectangle-shape';
 export { SmileyShape } from './lib/shapes/smiley-shape';
 export { StarShape } from './lib/shapes/star-shape';
+export { TextboxShape } from './lib/shapes/textbox-shape'
 export { CanvasWhiteboardShapeSelectorComponent } from './lib/shapes/canvas-whiteboard-shape-selector.component';
 export { CanvasWhiteboardColorPickerComponent } from './lib/canvas-whiteboard-colorpicker.component';
 export { CanvasWhiteboardShapePreviewComponent } from './lib/shapes/canvas-whiteboard-shape-preview.component';

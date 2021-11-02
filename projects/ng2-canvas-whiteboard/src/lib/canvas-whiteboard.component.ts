@@ -32,7 +32,8 @@ import { SocketWebService } from './services/socket-web.service';
                                           [selectedShapeConstructor]="selectedShapeConstructor"
                                           [shapeOptions]="generateShapePreviewOptions()"
                                           (onToggleShapeSelector)="toggleShapeSelector($event)"
-                                          (onShapeSelected)="selectShape($event)"></canvas-whiteboard-shape-selector>
+                                          (onShapeSelected)="selectShape($event)">
+        </canvas-whiteboard-shape-selector>
 
         <canvas-whiteboard-colorpicker *ngIf="colorPickerEnabled || fillColorPickerEnabled"
                                        [previewText]="fillColorPickerText"
@@ -653,7 +654,7 @@ export class CanvasWhiteboardComponent implements OnInit, AfterViewInit, OnChang
     if (this._shapesMap.has(updateUUID)) {
       if (emit) {
         this.socketWebService.redoEvent(updateUUID);
-      } 
+      }
       const shape = this._shapesMap.get(updateUUID);
       shape.isVisible = true;
       this.drawAllShapes();
