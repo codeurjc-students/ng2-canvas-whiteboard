@@ -11,8 +11,6 @@ import {
   LineShape, 
   RectangleShape,
 } from 'ng2-canvas-whiteboard';
-import{SocketWebService} from '../socket-web.service'
-
 @Component({
   selector: 'app-canvas',
   templateUrl: './canvas.component.html',
@@ -20,10 +18,11 @@ import{SocketWebService} from '../socket-web.service'
 })
 
 export class CanvasComponent implements OnInit {
+
   @ViewChild(CanvasWhiteboardComponent) canvasWhiteboardComponent: CanvasWhiteboardComponent;
   canvasOptions: CanvasWhiteboardOptions = {};
   
-  constructor(private canvasWhiteboardService: CanvasWhiteboardService, private canvasWhiteboardShapeService: CanvasWhiteboardShapeService, private socketService: SocketWebService) {
+  constructor(private canvasWhiteboardService: CanvasWhiteboardService, private canvasWhiteboardShapeService: CanvasWhiteboardShapeService) {
     // this.canvasWhiteboardShapeService.unregisterShapes([CircleShape, SmileyShape, StarShape, LineShape, RectangleShape]);
   }
   
@@ -31,8 +30,9 @@ export class CanvasComponent implements OnInit {
    
   }
   ngOnDestroy() {
-    // this.socketWebService.disconnect();
   }
+
+
   saveToStorage(): void {
     // Get the current full update history
     const updates: Array<CanvasWhiteboardUpdate> = this.canvasWhiteboardComponent.getDrawingHistory();
@@ -43,7 +43,7 @@ export class CanvasComponent implements OnInit {
     // Save the item in storage of choice
     sessionStorage.setItem('canvasWhiteboardDrawings', stringifiedStorageUpdates);
   }
-
+  
   loadFromStorage(): void {
     // Get the "string" from the storage
     const canvasDrawingsJson: string = sessionStorage.getItem('canvasWhiteboardDrawings');

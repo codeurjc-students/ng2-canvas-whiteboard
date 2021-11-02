@@ -23,7 +23,7 @@ export class CanvasWhiteboardUpdate {
         parsedJson['x'],
         parsedJson['y'],
         parsedJson['type'],
-        parsedJson['uuid'],
+        parsedJson['UUID'],
         parsedJson['selectedShape'],
         parsedJson['selectedShapeOptions']);
     } catch (e) {

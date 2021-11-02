@@ -48,7 +48,6 @@ export class FreeHandShape extends CanvasWhiteboardShape {
         i += 1;
       }
     }
-
     context.stroke();
   }
 

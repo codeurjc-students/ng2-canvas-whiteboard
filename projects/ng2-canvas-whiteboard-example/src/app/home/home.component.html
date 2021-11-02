@@ -1,1 +1,18 @@
-<p>home works!</p>
+<div class="container">
+    <h2>ng2-Canvas-Whiteboard Collaborative.</h2>
+    <div class="main">
+        <div class="row-auto">
+            <div class="row-auto">
+                <button (click)="join()">Join room</button>
+            </div>
+            <div class="row-auto">
+                <input type="text" #titleInput id="idRoomText" style="display:none;">
+                <button  style="display:none;" id="joinButton" type="submit" (click)='joinRoom(titleInput.value)'>Join</button>
+            </div>
+            
+        </div>
+        <div class="row-auto">
+            <button  (click)="createRoom()">Create new room</button>
+        </div>
+    </div>
+</div>

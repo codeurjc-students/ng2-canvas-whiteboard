@@ -6,6 +6,8 @@ import { CanvasWhiteboardShapeSelectorComponent } from './shapes/canvas-whiteboa
 import { CanvasWhiteboardShapePreviewComponent } from './shapes/canvas-whiteboard-shape-preview.component';
 import { CanvasWhiteboardService } from './canvas-whiteboard.service';
 import { CanvasWhiteboardShapeService } from './shapes/canvas-whiteboard-shape.service';
+import { SocketWebService } from './services/socket-web.service';
+
 
 @NgModule({
   declarations: [
@@ -19,7 +21,8 @@ import { CanvasWhiteboardShapeService } from './shapes/canvas-whiteboard-shape.s
   ],
   providers: [
     CanvasWhiteboardService,
-    CanvasWhiteboardShapeService
+    CanvasWhiteboardShapeService,
+    SocketWebService
   ],
   exports: [CanvasWhiteboardComponent]
 })

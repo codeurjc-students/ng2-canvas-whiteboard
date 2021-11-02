@@ -8,7 +8,7 @@ import { HomeComponent } from './home/home.component';
 import { Route, RouterModule, Routes } from '@angular/router';
 import { CookieService } from 'ngx-cookie-service';
 import {CanvasComponent} from './canvas/canvas.component';
-import { SocketWebService } from './socket-web.service';
+
 
 const routes: Routes=[
   {
@@ -31,11 +31,10 @@ const routes: Routes=[
   imports: [
     BrowserModule,
     CanvasWhiteboardModule,
-    RouterModule.forRoot(routes)
+    RouterModule.forRoot(routes),
   ],
   providers: [
     CookieService,
-    SocketWebService
   ],
   bootstrap: [AppComponent]
 })

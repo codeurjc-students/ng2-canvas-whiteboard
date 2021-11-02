@@ -19,11 +19,12 @@ import { CanvasWhiteboardShapeOptions } from './shapes/canvas-whiteboard-shape-o
 import { fromEvent, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { cloneDeep, isEqual } from 'lodash-es';
+import { SocketWebService } from './services/socket-web.service';
 
 @Component({
   selector: 'canvas-whiteboard',
   template:
-      `
+    `
     <div class="canvas_wrapper_div">
       <div class="canvas_whiteboard_buttons">
         <canvas-whiteboard-shape-selector *ngIf="shapeSelectorEnabled"
@@ -147,10 +148,10 @@ export class CanvasWhiteboardComponent implements OnInit, AfterViewInit, OnChang
   @Output() onImageLoaded = new EventEmitter<any>();
   @Output() onSave = new EventEmitter<string | Blob>();
 
-  @ViewChild('canvas', {static: true}) canvas: ElementRef;
+  @ViewChild('canvas', { static: true }) canvas: ElementRef;
   context: CanvasRenderingContext2D;
 
-  @ViewChild('incompleteShapesCanvas', {static: true}) private _incompleteShapesCanvas: ElementRef;
+  @ViewChild('incompleteShapesCanvas', { static: true }) private _incompleteShapesCanvas: ElementRef;
   private _incompleteShapesCanvasContext: CanvasRenderingContext2D;
   private _incompleteShapesMap: Map<string, CanvasWhiteboardShape>;
 
@@ -179,9 +180,26 @@ export class CanvasWhiteboardComponent implements OnInit, AfterViewInit, OnChang
   canvasWhiteboardShapePreviewOptions: CanvasWhiteboardShapeOptions;
 
   constructor(private ngZone: NgZone,
-              private changeDetectorRef: ChangeDetectorRef,
-              private canvasWhiteboardService: CanvasWhiteboardService,
-              private canvasWhiteboardShapeService: CanvasWhiteboardShapeService) {
+    private changeDetectorRef: ChangeDetectorRef,
+    private canvasWhiteboardService: CanvasWhiteboardService,
+    private canvasWhiteboardShapeService: CanvasWhiteboardShapeService,
+    private socketWebService: SocketWebService) {
+
+    this.socketWebService.callBack.subscribe(res => {
+      let newUpdate = CanvasWhiteboardUpdate.deserializeJson(res);
+      this._draw(newUpdate, false)
+    });
+    this.socketWebService.callClear.subscribe(res => {
+      this.clearCanvasLocal(false);
+    })
+    socketWebService.callUndo.subscribe(res => {
+      let update = res;
+      this._undoCanvas(false, update);
+    })
+    socketWebService.callRedo.subscribe(res => {
+      let redo = res;
+      this._redoCanvas(false, redo);
+    })
     this._shapesMap = new Map<string, CanvasWhiteboardShape>();
     this._incompleteShapesMap = new Map<string, CanvasWhiteboardShape>();
     this.canvasWhiteboardShapePreviewOptions = this.generateShapePreviewOptions();
@@ -375,9 +393,9 @@ export class CanvasWhiteboardComponent implements OnInit, AfterViewInit, OnChang
     this._canvasWhiteboardServiceSubscriptions.push(this.canvasWhiteboardService.canvasClearSubject$
       .subscribe(() => this.clearCanvas()));
     this._canvasWhiteboardServiceSubscriptions.push(this.canvasWhiteboardService.canvasUndoSubject$
-      .subscribe((updateUUD) => this._undoCanvas(updateUUD)));
+      .subscribe((updateUUD) => this._undoCanvas(true, updateUUD)));
     this._canvasWhiteboardServiceSubscriptions.push(this.canvasWhiteboardService.canvasRedoSubject$
-      .subscribe((updateUUD) => this._redoCanvas(updateUUD)));
+      .subscribe((updateUUD) => this._redoCanvas(null, updateUUD)));
 
     this._registeredShapesSubscription = this.canvasWhiteboardShapeService.registeredShapes$.subscribe((shapes) => {
       if (!this.selectedShapeConstructor || !this.canvasWhiteboardShapeService.isRegisteredShape(this.selectedShapeConstructor)) {
@@ -408,7 +426,6 @@ export class CanvasWhiteboardComponent implements OnInit, AfterViewInit, OnChang
    */
   private _loadImage(callbackFn?: any): void {
     this._canDraw = false;
-
     // If we already have the image there is no need to acquire it
     if (this._imageElement) {
       this._canDraw = true;
@@ -430,9 +447,12 @@ export class CanvasWhiteboardComponent implements OnInit, AfterViewInit, OnChang
    * This method should only be called from the clear button in this component since it will emit an clear event
    * If the client calls this method he may create a circular clear action which may cause danger.
    */
-  clearCanvasLocal(): void {
-    this.clearCanvas();
+  clearCanvasLocal(emit = true): void {
     this.onClear.emit(true);
+    if (emit) {
+      this.socketWebService.clearEvent()
+    }
+    this.clearCanvas();
   }
 
   /**
@@ -561,10 +581,12 @@ export class CanvasWhiteboardComponent implements OnInit, AfterViewInit, OnChang
    * If the client calls this method he may create a circular undo action which may cause danger.
    */
   undoLocal(): void {
+
     this.undo((updateUUID) => {
       this._redoStack.push(updateUUID);
       this.onUndo.emit(updateUUID);
     });
+
   }
 
   /**
@@ -576,9 +598,8 @@ export class CanvasWhiteboardComponent implements OnInit, AfterViewInit, OnChang
     if (!this._undoStack.length) {
       return;
     }
-
     const updateUUID = this._undoStack.pop();
-    this._undoCanvas(updateUUID);
+    this._undoCanvas(true, updateUUID);
     callbackFn && callbackFn(updateUUID);
   }
 
@@ -586,8 +607,11 @@ export class CanvasWhiteboardComponent implements OnInit, AfterViewInit, OnChang
    * This method takes an UUID for an update, and redraws the canvas by making all updates with that uuid invisible
    * @param updateUUID
    */
-  private _undoCanvas(updateUUID: string): void {
+  private _undoCanvas(emit = true, updateUUID: string): void {
     if (this._shapesMap.has(updateUUID)) {
+      if (emit) {
+        this.socketWebService.undoEvent(updateUUID);
+      }
       const shape = this._shapesMap.get(updateUUID);
       shape.isVisible = false;
       this.drawAllShapes();
@@ -616,9 +640,8 @@ export class CanvasWhiteboardComponent implements OnInit, AfterViewInit, OnChang
     if (!this._redoStack.length) {
       return;
     }
-
     const updateUUID = this._redoStack.pop();
-    this._redoCanvas(updateUUID);
+    this._redoCanvas(true, updateUUID);
     callbackFn && callbackFn(updateUUID);
   }
 
@@ -626,11 +649,13 @@ export class CanvasWhiteboardComponent implements OnInit, AfterViewInit, OnChang
    * This method takes an UUID for an update, and redraws the canvas by making all updates with that uuid visible
    * @param updateUUID
    */
-  private _redoCanvas(updateUUID: string): void {
+  private _redoCanvas(emit = true, updateUUID: string): void {
     if (this._shapesMap.has(updateUUID)) {
+      if (emit) {
+        this.socketWebService.redoEvent(updateUUID);
+      } 
       const shape = this._shapesMap.get(updateUUID);
       shape.isVisible = true;
-
       this.drawAllShapes();
     }
   }
@@ -674,9 +699,9 @@ export class CanvasWhiteboardComponent implements OnInit, AfterViewInit, OnChang
 
     let update: CanvasWhiteboardUpdate;
     let updateType: number;
+
     const eventPosition: CanvasWhiteboardPoint = this._getCanvasEventPosition(event);
     update = new CanvasWhiteboardUpdate(eventPosition.x, eventPosition.y);
-
     switch (event.type) {
       case 'mousedown':
       case 'touchstart':
@@ -706,7 +731,6 @@ export class CanvasWhiteboardComponent implements OnInit, AfterViewInit, OnChang
 
     update.UUID = this._lastUUID;
     update.type = updateType;
-
     this._draw(update);
     this._prepareToSendUpdate(update);
   }
@@ -810,7 +834,11 @@ export class CanvasWhiteboardComponent implements OnInit, AfterViewInit, OnChang
    *
    * @param update The update object.
    */
-  private _draw(update: CanvasWhiteboardUpdate): void {
+  private _draw(update: CanvasWhiteboardUpdate, emit = true): void {
+
+    if (emit) {
+      this.socketWebService.drawEvent(JSON.stringify(update));
+    }
     this._updateHistory.push(update);
 
     // map the canvas coordinates to our canvas size since they are scaled.
@@ -820,7 +848,6 @@ export class CanvasWhiteboardComponent implements OnInit, AfterViewInit, OnChang
         x: update.x * this.context.canvas.width,
         y: update.y * this.context.canvas.height
       });
-
     if (update.type === CanvasWhiteboardUpdateType.START) {
       const updateShapeConstructor = this.canvasWhiteboardShapeService.getShapeConstructorFromShapeName(update.selectedShape);
       const shape = new updateShapeConstructor(
@@ -833,7 +860,7 @@ export class CanvasWhiteboardComponent implements OnInit, AfterViewInit, OnChang
       const shape = this._incompleteShapesMap.get(update.UUID);
       shape && shape.onUpdateReceived(update);
       this._drawIncompleteShapes();
-    } else if (CanvasWhiteboardUpdateType.STOP) {
+    } else if (CanvasWhiteboardUpdateType.STOP || !emit) {
       const shape = this._incompleteShapesMap.get(update.UUID);
       shape && shape.onStopReceived(update);
 
@@ -888,7 +915,7 @@ export class CanvasWhiteboardComponent implements OnInit, AfterViewInit, OnChang
     if (!update.selectedShapeOptions) {
       // Make a deep copy since we don't want some Shape implementation to change something by accident
       update.selectedShapeOptions = Object.assign(new CanvasWhiteboardShapeOptions(),
-        this.generateShapePreviewOptions(), {lineWidth: this.lineWidth});
+        this.generateShapePreviewOptions(), { lineWidth: this.lineWidth });
     }
   }
 
