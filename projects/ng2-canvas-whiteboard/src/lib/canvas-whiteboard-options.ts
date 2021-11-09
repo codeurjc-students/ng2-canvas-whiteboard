@@ -37,4 +37,5 @@ export interface CanvasWhiteboardOptions {
   shapeSelectorEnabled?: boolean;
   showShapeSelector?: boolean;
   fillColor?: string;
+  showTextEdit?: boolean;
 }

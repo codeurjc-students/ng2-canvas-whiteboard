@@ -20,7 +20,7 @@ export class TextboxShape extends CanvasWhiteboardShape {
     }
     onUpdateReceived(update: CanvasWhiteboardUpdate): void {
         this.width = update.x - this.positionPoint.x;
-    this.height = update.y - this.positionPoint.y;
+        this.height = update.y - this.positionPoint.y;
     }
     draw(context: CanvasRenderingContext2D): void {
         if (!this.width || !this.height) {
@@ -29,12 +29,18 @@ export class TextboxShape extends CanvasWhiteboardShape {
         context.beginPath();
 
         Object.assign(context, this.options);
+        context.font = this.width+'px monospace';
+        context.strokeText(this.options.text,this.positionPoint.x, this.positionPoint.y,this.width);
+        context.fillText(this.options.text,this.positionPoint.x, this.positionPoint.y,this.width);
 
-        
         context.closePath();
     }
+
     drawPreview(context: CanvasRenderingContext2D): void {
-        this.positionPoint = new CanvasWhiteboardPoint(context.canvas.width / 2, context.canvas.height / 2);
+        this.positionPoint = new CanvasWhiteboardPoint(2, 2);
+        this.width = context.canvas.width-4;
+        this.height = context.canvas.height-4;
+        
         this.draw(context);
     }
 }

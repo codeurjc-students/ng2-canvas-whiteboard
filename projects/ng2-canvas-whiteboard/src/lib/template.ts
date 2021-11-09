@@ -35,7 +35,7 @@ export const DEFAULT_STYLES = `
             text-align: center;
       }
 }
-
+.divText{ padding:10px;}
 @media (min-width: 401px) {
     .canvas_whiteboard_buttons {
         position: absolute;

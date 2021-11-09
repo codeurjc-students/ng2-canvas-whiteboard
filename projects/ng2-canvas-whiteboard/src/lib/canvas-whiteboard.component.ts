@@ -26,6 +26,7 @@ import { SocketWebService } from './services/socket-web.service';
   template:
     `
     <div class="canvas_wrapper_div">
+    
       <div class="canvas_whiteboard_buttons">
         <canvas-whiteboard-shape-selector *ngIf="shapeSelectorEnabled"
                                           [showShapeSelector]="showShapeSelector"
@@ -76,7 +77,14 @@ import { SocketWebService } from './services/socket-web.service';
                 class="canvas_whiteboard_button canvas_whiteboard_button-save">
           <i [class]="saveDataButtonClass" aria-hidden="true"></i> {{saveDataButtonText}}
         </button>
+        <canvas-whiteboard-text-editor [previewText]="editText"
+                                       [showTextEdit]="showTextEdit"
+                                       [insertedText]="insertedText"
+                                      (onToggleEditText)="toggleEditText($event)"
+                                      (onTextInserted)="changeText($event)">
+        </canvas-whiteboard-text-editor>
       </div>
+     
       <canvas #canvas class="canvas_whiteboard"></canvas>
       <canvas #incompleteShapesCanvas class="incomplete_shapes_canvas_whiteboard"
               (mousedown)="canvasUserEvents($event)" (mouseup)="canvasUserEvents($event)"
@@ -117,6 +125,7 @@ export class CanvasWhiteboardComponent implements OnInit, AfterViewInit, OnChang
   @Input() saveDataButtonText = '';
   @Input() strokeColorPickerText = 'Stroke';
   @Input() fillColorPickerText = 'Fill';
+  @Input() editText = '';
   @Input() drawButtonEnabled = true;
   @Input() clearButtonEnabled = true;
   @Input() undoButtonEnabled = false;
@@ -129,10 +138,12 @@ export class CanvasWhiteboardComponent implements OnInit, AfterViewInit, OnChang
   @Input() fillColorPickerEnabled: boolean = false;
   @Input() lineWidth = 2;
   @Input() strokeColor = 'rgba(0, 0, 0, 1)';
+  @Input() insertedText = 'Hola';
   @Input() startingColor = '#fff';
   @Input() scaleFactor = 0;
   @Input() drawingEnabled = false;
   @Input() showStrokeColorPicker = false;
+  @Input() showTextEdit = false;
   @Input() showFillColorPicker = false;
   @Input() downloadedFileName: string;
 
@@ -356,6 +367,9 @@ export class CanvasWhiteboardComponent implements OnInit, AfterViewInit, OnChang
       if (!this._isNullOrUndefined(options.showFillColorPicker)) {
         this.showFillColorPicker = options.showFillColorPicker;
       }
+      if(!this._isNullOrUndefined(options.showTextEdit)){
+        this.showTextEdit  =  options.showTextEdit
+      }
     }
   }
 
@@ -571,6 +585,13 @@ export class CanvasWhiteboardComponent implements OnInit, AfterViewInit, OnChang
    */
   changeFillColor(newFillColor: string): void {
     this.fillColor = newFillColor;
+    this.canvasWhiteboardShapePreviewOptions = this.generateShapePreviewOptions();
+    this.changeDetectorRef.detectChanges();
+  }
+
+  changeText(newText: string): void{
+    this.insertedText = newText;
+    console.log(this.insertedText);
     this.canvasWhiteboardShapePreviewOptions = this.generateShapePreviewOptions();
     this.changeDetectorRef.detectChanges();
   }
@@ -928,7 +949,8 @@ export class CanvasWhiteboardComponent implements OnInit, AfterViewInit, OnChang
         strokeStyle: this.strokeColor,
         lineWidth: 2,
         lineJoin: this.lineJoin,
-        lineCap: this.lineCap
+        lineCap: this.lineCap,
+        text: this.insertedText
       });
   }
 
@@ -1211,6 +1233,15 @@ export class CanvasWhiteboardComponent implements OnInit, AfterViewInit, OnChang
    */
   toggleShapeSelector(value: boolean): void {
     this.showShapeSelector = !this._isNullOrUndefined(value) ? value : !this.showShapeSelector;
+  }
+
+  /**
+   * Toggles the edit text window, delegating the showEditText Input to the CanvasWhiteboardShapeSelectorComponent.
+   * If no value is supplied (null/undefined) the current value will be negated and used.
+   * @param value
+   */
+  toggleEditText(value: boolean): void {
+    this.showTextEdit = !this._isNullOrUndefined(value) ? value : !this.showTextEdit;
   }
 
   selectShape(newShapeBlueprint: INewCanvasWhiteboardShape<CanvasWhiteboardShape>): void {
